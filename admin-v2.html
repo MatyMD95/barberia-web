@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel — Barbería del Barrio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="mark">B</div>
+    <h1>Panel administrativo</h1>
+    <p>Acceso privado para el propietario</p>
+    <input type="email" id="emailInput" placeholder="Email" autocomplete="email">
+    <input type="password" id="passInput" placeholder="Contraseña" autocomplete="current-password">
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn btn-primary" style="width:100%" id="loginBtn">Ingresar</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark">B</div>
+    <div>
+      <div class="brand-name">Barbería del Barrio</div>
+      <div class="brand-tag">Panel</div>
+    </div>
+  </div>
+  <button class="logout-btn" id="logoutBtn">Salir</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="dashboard">Dashboard</button>
+  <button class="tab-btn" data-view="agenda">Agenda</button>
+  <button class="tab-btn" data-view="turnos">Turnos</button>
+  <button class="tab-btn" data-view="servicios">Servicios</button>
+  <button class="tab-btn" data-view="horarios">Horarios</button>
+  <button class="tab-btn" data-view="qr">QR</button>
+</nav>
+
+<main>
+
+  <!-- ================= DASHBOARD ================= -->
+  <section class="view active" id="view-dashboard">
+    <div class="view-head"><div><h2>Hoy</h2><div class="sub" id="dashDate"></div></div></div>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="panel-block">
+      <h3>TURNOS DE HOY</h3>
+      <div id="dashHoy"></div>
+    </div>
+    <div class="panel-block">
+      <h3>PRÓXIMOS TURNOS</h3>
+      <div id="dashProximos"></div>
+    </div>
+    <div class="panel-block">
+      <h3>SERVICIOS MÁS SOLICITADOS</h3>
+      <div id="dashTop"></div>
+    </div>
+  </section>
+
+  <!-- ================= AGENDA ================= -->
+  <section class="view" id="view-agenda">
+    <div class="view-head"><h2>Agenda</h2></div>
+    <div class="agenda-controls">
+      <div class="view-toggle">
+        <button class="active" id="agTabDia">Día</button>
+        <button id="agTabSemana">Semana</button>
+      </div>
+      <input type="date" id="agendaDate">
+    </div>
+    <div id="agendaWeekGrid" class="week-grid" style="display:none;"></div>
+    <div id="agendaList"></div>
+  </section>
+
+  <!-- ================= TURNOS ================= -->
+  <section class="view" id="view-turnos">
+    <div class="view-head">
+      <div><h2>Gestión de turnos</h2><div class="sub" id="turnosCount"></div></div>
+      <button class="btn btn-primary btn-sm" id="btnNuevoTurno">+ Nuevo</button>
+    </div>
+    <div id="turnosList"></div>
+  </section>
+
+  <!-- ================= SERVICIOS ================= -->
+  <section class="view" id="view-servicios">
+    <div class="view-head">
+      <h2>Servicios</h2>
+      <button class="btn btn-primary btn-sm" id="btnNuevoServicio">+ Nuevo</button>
+    </div>
+    <div id="serviciosAdminList"></div>
+  </section>
+
+  <!-- ================= HORARIOS ================= -->
+  <section class="view" id="view-horarios">
+    <div class="view-head"><h2>Horarios de atención</h2></div>
+
+    <div class="field">
+      <label>Días de atención</label>
+      <div class="day-check-grid" id="diasCheckGrid"></div>
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label>Apertura</label><input type="time" id="cfgApertura"></div>
+      <div class="field"><label>Cierre</label><input type="time" id="cfgCierre"></div>
+    </div>
+
+    <div class="field">
+      <label>Duración de cada turno (minutos)</label>
+      <input type="number" id="cfgDuracion" min="5" step="5">
+    </div>
+
+    <div class="field">
+      <label>Descansos (ej: horario de almuerzo)</label>
+      <div id="descansosList"></div>
+      <button class="add-link" id="addDescanso">+ Agregar descanso</button>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn-primary" style="width:100%" id="btnGuardarHorarios">Guardar cambios</button>
+    </div>
+  </section>
+
+  <!-- ================= QR ================= -->
+  <section class="view" id="view-qr">
+    <div class="view-head"><h2>Código QR</h2></div>
+    <div class="field">
+      <label>URL pública de la página de reservas</label>
+      <input type="text" id="qrUrl" placeholder="https://tubarberia.github.io/">
+    </div>
+    <button class="btn btn-primary" style="width:100%" id="btnGenerarQr">Generar QR</button>
+    <div class="qr-box">
+      <div id="qrCanvasWrap"></div>
+      <div class="qr-actions" id="qrActions" style="display:none;">
+        <button class="btn btn-ghost btn-sm" id="btnDescargarQr">Descargar PNG</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal turno -->
+<div class="overlay" id="turnoOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="turnoModalTitle">Nuevo turno</div>
+      <button class="close-x" data-close="turnoOverlay">✕</button>
+    </div>
+    <div class="field"><label>Cliente</label><input type="text" id="tfCliente" placeholder="Nombre y apellido"></div>
+    <div class="field"><label>Teléfono</label><input type="tel" id="tfTelefono" placeholder="+54 9 ..."></div>
+    <div class="field"><label>Servicio</label><select id="tfServicio"></select></div>
+    <div class="field-row">
+      <div class="field"><label>Fecha</label><input type="date" id="tfFecha"></div>
+      <div class="field"><label>Hora</label><input type="time" id="tfHora"></div>
+    </div>
+    <div class="field"><label>Estado</label>
+      <select id="tfEstado">
+        <option value="pendiente">Pendiente</option>
+        <option value="confirmado">Confirmado</option>
+        <option value="cancelado">Cancelado</option>
+        <option value="finalizado">Finalizado</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger-outline" id="btnEliminarTurno" style="display:none;">Eliminar</button>
+      <button class="btn btn-primary" id="btnGuardarTurno">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal servicio -->
+<div class="overlay" id="servicioOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="servicioModalTitle">Nuevo servicio</div>
+      <button class="close-x" data-close="servicioOverlay">✕</button>
+    </div>
+    <div class="field"><label>Nombre</label><input type="text" id="sfNombre" placeholder="Ej: Corte de cabello"></div>
+    <div class="field"><label>Descripción (opcional)</label><input type="text" id="sfDescripcion" placeholder="Breve detalle del servicio"></div>
+    <div class="field-row">
+      <div class="field"><label>Precio ($)</label><input type="number" id="sfPrecio" min="0" step="100"></div>
+      <div class="field"><label>Duración (min)</label><input type="number" id="sfDuracion" min="5" step="5"></div>
+    </div>
+    <div class="field"><label>Imagen (URL opcional)</label><input type="text" id="sfImagen" placeholder="https://..."></div>
+    <div class="field">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="sfActivo" style="width:auto;"> Servicio disponible
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger-outline" id="btnEliminarServicio" style="display:none;">Eliminar</button>
+      <button class="btn btn-primary" id="btnGuardarServicio">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/admin.js"></script>
+</body>
+</html>
